@@ -1,4 +1,6 @@
 / form validations
-- add firebase auth
+- add firebase auth/login
+    - restrict certain pages if not logged-in
 - can edit project & status
--
+- use vuex for modal flag variables
+- add filter on dashboard

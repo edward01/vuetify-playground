@@ -25,7 +25,7 @@
         </td>
         <td class="text-xs-right">
           <v-btn flat small dark icon color="warning">
-            <v-icon dark>edit</v-icon>
+            <v-icon dark @click="editRecord(props.item.id)">edit</v-icon>
           </v-btn>
           <v-btn flat small dark icon color="error" @click.stop="showDeleteDialog(props.item.id)">
             <v-icon dark>delete</v-icon>
@@ -61,6 +61,11 @@ export default {
     showDeleteDialog(id) {
       this.rowId = id
       this.deleteDialog = true
+    },
+    editRecord(id) {
+      const idx = this.projects.findIndex(item => item.id == id)
+      this.$store.commit('setSelectedProject', this.projects[idx])
+      this.$store.commit('toggleModal', true)
     }
   },
   filters: {
@@ -89,6 +94,8 @@ export default {
         }
         if (change.type === "modified") {
           console.log("Modified record: ", change.doc.data());
+          const idx = this.projects.findIndex(item => item.id == change.doc.id)
+          this.$set(this.projects, idx, change.doc.data())
         }
         if (change.type === "removed") {
           console.log("Removed record: ", change.doc.data());

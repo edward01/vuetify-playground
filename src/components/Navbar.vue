@@ -6,7 +6,7 @@
       :timeout="6000"
       top
     >
-      Project successfully added
+      Project successfully added/updated
       <v-btn
         dark
         flat
