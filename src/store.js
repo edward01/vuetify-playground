@@ -8,6 +8,10 @@ export default new Vuex.Store({
         dialog: false,
         selectedProject: {}
     },
+    getters: {
+        dialog: state => state.dialog,
+        selectedProject: state => state.selectedProject,
+    },
     mutations: {
         toggleModal(state, dialog) {
             state.dialog = dialog
@@ -16,8 +20,28 @@ export default new Vuex.Store({
             state.selectedProject = value
         }
     },
-    getters: {
-        dialog: state => state.dialog,
-        selectedProject: state => state.selectedProject,
-    }
+    // actions: {
+    //     getMovies (context) {
+    //         axios.get('/api/movies')
+    //             .then((movies) => {
+    //                 context.commit('setMovies', movies)
+    //             })
+    //     },
+    // },
 })
+
+
+/*
+<script>
+export default {
+    mounted () {
+        this.$store.dispatch('getMovies')
+    },
+    computed: {
+        movies () {
+            this.$store.getters.movies
+        }
+    }
+}
+</script>
+*/

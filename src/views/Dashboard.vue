@@ -18,10 +18,21 @@
         </td>
         <td>
           <div class="caption grey--text">Due by</div>
-          <div>{{ props.item.due }}</div>
+          <div>{{ props.item.due | customDateFormat }}</div>
         </td>
         <td>
-          <v-chip small :color="props.item.status | statusColor" text-color="white">{{ props.item.status }}</v-chip>
+          <v-chip small :color="props.item.status | statusColor" text-color="white">
+            {{ props.item.status }}
+          </v-chip>
+          <!-- <v-btn
+            :color="props.item.status | statusColor"
+            dark
+            round
+            small
+            class="text-lowercase"
+          >
+            {{ props.item.status }}
+          </v-btn> -->
         </td>
         <td class="text-xs-right">
           <v-btn flat small dark icon color="warning">
@@ -41,20 +52,15 @@
 <script>
 import db from '@/fb'
 import Delete from '@/components/Delete'
+// import TestDatepicker from '@/components/TestDatepicker'
 
 export default {
   components: { Delete },
   data() {
     return {
-      // projects: [
-      //   { title: 'Design a new website', person: 'The Net Ninja', due: '1st Jan 2019', status: 'ongoing', content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt consequuntur eos eligendi illum minima adipisci deleniti, dicta mollitia enim explicabo fugiat quidem ducimus praesentium voluptates porro molestias non sequi animi!'},
-      //   { title: 'Code up the homepage', person: 'Chun Li', due: '10th Jan 2019', status: 'complete', content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt consequuntur eos eligendi illum minima adipisci deleniti, dicta mollitia enim explicabo fugiat quidem ducimus praesentium voluptates porro molestias non sequi animi!'},
-      //   { title: 'Design video thumbnails', person: 'Ryu', due: '20th Dec 2018', status: 'complete', content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt consequuntur eos eligendi illum minima adipisci deleniti, dicta mollitia enim explicabo fugiat quidem ducimus praesentium voluptates porro molestias non sequi animi!'},
-      //   { title: 'Create a community forum', person: 'Gouken', due: '20th Oct 2018', status: 'overdue', content: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt consequuntur eos eligendi illum minima adipisci deleniti, dicta mollitia enim explicabo fugiat quidem ducimus praesentium voluptates porro molestias non sequi animi!'},
-      // ]
       projects: [],
       deleteDialog: false,
-      rowId: ''
+      rowId: '',
     }
   },
   methods: {
@@ -64,16 +70,18 @@ export default {
     },
     editRecord(id) {
       const idx = this.projects.findIndex(item => item.id == id)
+      console.log('this.projects[idx]:', this.projects[idx]);
       this.$store.commit('setSelectedProject', this.projects[idx])
       this.$store.commit('toggleModal', true)
-    }
+    },
   },
   filters: {
     statusColor: function(value) {
       const chipColors = {
         'ongoing': 'warning',
         'complete': 'success',
-        'overdue': 'red'
+        'overdue': 'red',
+        'onqueue': 'blue',
       }
       if (chipColors.hasOwnProperty(value))
         return chipColors[value]
@@ -86,19 +94,20 @@ export default {
     .onSnapshot((snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
-          console.log("New record: ", change.doc.data())
+          // console.log("New record: ", change.doc.data())
           this.projects.push({
             id: change.doc.id,
             ...change.doc.data()
           })
         }
         if (change.type === "modified") {
-          console.log("Modified record: ", change.doc.data());
+          // console.log("Modified record: ", change.doc.data());
           const idx = this.projects.findIndex(item => item.id == change.doc.id)
           this.$set(this.projects, idx, change.doc.data())
+          this.projects[idx].id = change.doc.id
         }
         if (change.type === "removed") {
-          console.log("Removed record: ", change.doc.data());
+          // console.log("Removed record: ", change.doc.data());
           const idx = this.projects.findIndex(item => item.id == change.doc.id)
           this.projects.splice(idx, 1)
         }
@@ -113,11 +122,5 @@ export default {
   .project-row.ongoing { border-left: 4px solid #ffaa2c; }
   .project-row.complete { border-left: 4px solid #3cd1c2; }
   .project-row.overdue { border-left: 4px solid #f83e70; }
+  .project-row.onqueue { border-left: 4px solid #2096F3; }
 </style>
-
-
-<!-- todo
-- adjust table cell height
-- add link to navigate to edit page
-- add avatar to each rows
--->

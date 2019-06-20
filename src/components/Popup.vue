@@ -2,12 +2,10 @@
   <div>
     <v-btn color="success" dark @click="toggleModal(true)">Add New Project</v-btn>
     <v-dialog v-model="dialog" persistent max-width="600px">
-      <!-- <template v-slot:activator="{ on }">
-        <v-btn color="success" dark v-on="on">Add New Project</v-btn>
-      </template> -->
       <v-card>
         <v-card-title>
-          <span class="headline">Add a New Project</span>
+          <span class="headline" v-if="projectId == null">Add New Project</span>
+          <span class="headline" v-else>Edit a Project</span>
         </v-card-title>
         <v-card-text>
           <v-form ref="form" v-model="valid" @submit.prevent="submit">
@@ -30,28 +28,38 @@
                     required
                   ></v-textarea>
                 </v-flex>
-                <v-flex xs-12>
+                <v-flex xs12>
                   <v-menu
                     v-model="menu"
+                    :close-on-content-click="false"
                     full-width
                     max-width="290"
                   >
                     <template v-slot:activator="{ on }">
                       <v-text-field
-                        :value="formattedDatefns"
+                        :value="due | customDateFormat"
                         clearable
-                        label="Due Date*"
-                        prepend-icon="event"
-                        readonly
-                        :rules="dueDateRules"
+                        label="Due*"
                         v-on="on"
+                        prepend-icon="event"
+                        :rules="dueDateRules"
+                        required
                       ></v-text-field>
                     </template>
                     <v-date-picker
                       v-model="due"
-                      @change="menu2 = false"
+                      @change="menu = false"
                     ></v-date-picker>
                   </v-menu>
+                </v-flex>
+                <v-flex xs12 v-if="projectId">
+                  <v-select
+                    prepend-icon="info"
+                    label="Status*"
+                    v-model="status"
+                    :items="statusOptions"
+                  >
+                  </v-select>
                 </v-flex>
               </v-layout>
             </v-container>
@@ -71,9 +79,6 @@
 </template>
 
 <script>
-import moment from 'moment'
-import format from 'date-fns/format'
-import parse from 'date-fns/parse'
 import db from '@/fb'
 import { timeout } from 'q';
 
@@ -94,6 +99,16 @@ export default {
       dueDateRules: [
         v => !!v || 'This field is required',
       ],
+      statusOptions: ['onqueue', 'ongoing', 'complete', 'overdue'],
+
+      select: { state: 'Florida', abbr: 'FL' },
+      items: [
+        { state: 'Florida', abbr: 'FL' },
+        { state: 'Georgia', abbr: 'GA' },
+        { state: 'Nebraska', abbr: 'NE' },
+        { state: 'California', abbr: 'CA' },
+        { state: 'New York', abbr: 'NY' }
+      ]
     }
   },
   methods: {
@@ -104,7 +119,7 @@ export default {
           const project = {
             title: this.title,
             content: this.content,
-            due: this.formattedDatefns,
+            due: this.due,
             person: 'The Net Ninja',
             status: 'ongoing'
           }
@@ -123,7 +138,8 @@ export default {
           db.collection("projects").doc(this.projectId).update({
             title: this.title,
             content: this.content,
-            due: this.formattedDatefns,
+            due: this.due,
+            status: this.status
           })
           .then(() => {
             console.log("Document successfully updated!");
@@ -140,12 +156,9 @@ export default {
     toggleModal(value) {
       this.$store.commit('setSelectedProject', {})
       this.$store.commit('toggleModal', value)
-    }
+    },
   },
   computed: {
-    formattedDatefns() {
-      return this.due ? format(this.due, 'Do MMM YYYY') : ''
-    },
     dialog() {
       return this.$store.getters.dialog
     },
@@ -159,10 +172,12 @@ export default {
         this.projectId = newValue.id
         this.title = newValue.title
         this.content = newValue.content
-        this.due = moment(newValue.due, 'Do MMM YYYY').toDate()
+        this.due = newValue.due
+        this.status = newValue.status
       }
       else {
         this.projectId = null
+        this.due = null
         this.$refs.form.reset()
       }
       setTimeout(() => {
